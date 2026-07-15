@@ -20,6 +20,23 @@ def menuOptionInput():
     return i
 
 
+def itemPrint(obj):
+    print(
+        f"学号：{obj['id']}  姓名：{obj['name']}  年龄：{obj['age']}  分数：{obj['score']:.2f}"
+    )
+    return
+
+
+def tablePrint(dictionsInList):
+    if data == []:
+        print("暂无学生信息，请先添加数据")
+        return -1
+    print("========== 学生信息列表 ==========")
+    print(f"当前在校学生总人数：{len(data)}人")
+    for x in dictionsInList:
+        itemPrint(x)
+
+
 def isInt(obj):
     if not obj:
         return False
@@ -73,22 +90,70 @@ def ageCheck(obj):
         return False
 
 
+def scoreCheck(obj):
+    if isInt(obj) or isFloat(obj):
+        if float(obj) >= 0 and float(obj) <= 100:
+            return True
+        else:
+            return False
+    else:
+        return False
+
+
 def isInDataById(id):
     res = [x for x in data if x["id"] == id]
     return res != []
 
 
 def inputItem():
-    input("input id")
+    while True:
+        id = input("input id:")
+        if id == "exit":
+            return -1
+        if idCheck(id):
+            break
+        print("输入不合法，请重新输入。")
+    id = int(id)
+    while True:
+        name = input("input name:")
+        if name == "exit":
+            return -1
+        if nameCheck(name):
+            break
+        print("输入不合法，请重新输入。")
+    while True:
+        age = input("input age:")
+        if age == "exit":
+            return -1
+        if ageCheck(age):
+            break
+        print("输入不合法，请重新输入。")
+    age = int(age)
+    while True:
+        score = input("input score:")
+        if score == "exit":
+            return -1
+        if scoreCheck(score):
+            break
+        print("输入不合法，请重新输入。")
+    score = int(score) if isInt(score) else float(score)
+    data.append({"id": id, "name": name, "age": age, "score": score})
+    print(f"✅ 学生信息添加成功！")
+    return 0
 
 
 def addData():
     opt = input("choose mode,1=单个添加，2=批量添加:")
     if opt == "1":
-        pass
+        inputItem()
     elif opt == "2":
         while True:
-            pass
+            if inputItem() < 0:
+                break
+
+
+def selectInfo():
+    print("1.学号精准查询 2.姓名模糊查询 3.分数区间查询")
 
 
 def exitSystem():
@@ -102,9 +167,10 @@ def main():
         menuPrint()
         opt = menuOptionInput()
         if opt == 1:
-            pass
+            addData()
         if opt == 2:
-            pass
+            if tablePrint(data) == -1:
+                print("暂无学生信息，请先添加数据")
         if opt == 3:
             pass
         if opt == 4:
@@ -119,5 +185,5 @@ def main():
             exitSystem()
 
 
-if __name__ == "__name__":
+if __name__ == "__main__":
     main()
