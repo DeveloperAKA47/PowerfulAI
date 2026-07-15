@@ -20,6 +20,19 @@ def menuOptionInput():
     return i
 
 
+def clearAll(table):
+    if table == []:
+        return
+    table.clear()
+
+
+def twiceCheck():
+    s = input("are you sure.Y/N:").strip()
+    if s == "Y":
+        return 0
+    return -1
+
+
 def itemPrint(obj):
     print(
         f"学号：{obj['id']}  姓名：{obj['name']}  年龄：{obj['age']}  分数：{obj['score']:.2f}"
@@ -29,7 +42,6 @@ def itemPrint(obj):
 
 def tablePrint(dictionsInList):
     if data == []:
-        print("暂无学生信息，请先添加数据")
         return -1
     print("========== 学生信息列表 ==========")
     print(f"当前在校学生总人数：{len(data)}人")
@@ -152,12 +164,128 @@ def addData():
                 break
 
 
+def getInfoById(id):
+    if isInDataById(id):
+        tablePrint([x for x in data if x["id"] == id])
+    else:
+        print("no info match")
+        return
+
+
+def getInfoByName(s):
+    res = list(filter(lambda x: s in x["name"], data))
+    if res == []:
+        print("no info match")
+        return
+    else:
+        tablePrint(res)
+
+
+def getInfoByScore(low, high):
+    res = list(filter(lambda x: (low <= x["score"] and high >= x["score"]), data))
+    if res == []:
+        print("no info match")
+        return
+    else:
+        tablePrint(res)
+
+
 def selectInfo():
-    print("1.学号精准查询 2.姓名模糊查询 3.分数区间查询")
+    while True:
+        print("1.学号精准查询 2.姓名模糊查询 3.分数区间查询 0.结束查询")
+        opt = int(input("请选择查询方式："))
+        if opt == 1:
+            id = int(input("请输入查询学号："))
+            getInfoById(id)
+        if opt == 2:
+            s = input("请输入姓名关键字：")
+            getInfoByName(s)
+        if opt == 3:
+            low = float(input("请输入最低分数："))
+            high = float(input("请输入最高分数："))
+            getInfoByScore(low, high)
+        if opt == 0:
+            return
+
+
+def updateInfo():
+    id = int(input("输入学号:"))
+    if isInDataById(id):
+        while True:
+            print("""----- 修改功能子菜单 -----
+1. 修改姓名
+2. 修改年龄
+3. 修改分数
+4. 返回上一级""")
+            opt = int(input("请选择修改字段："))
+            if opt == 4:
+                break
+            elif opt == 1:
+                name = input("input name:")
+                if nameCheck(name):
+                    res = [x for x in data if x["id"] == id]
+                    res[0]["name"] = name
+                    res = [x for x in data if x["id"] == id]
+                    print("✅ 学生信息修改成功！")
+                    tablePrint(res)
+                else:
+                    print("invalid inputs")
+                    continue
+            elif opt == 2:
+                age = input("input age:")
+                if ageCheck(age):
+                    res = [x for x in data if x["id"] == id]
+                    age = int(age)
+                    res[0]["age"] = age
+                    res = [x for x in data if x["id"] == id]
+                    print("✅ 学生信息修改成功！")
+                    tablePrint(res)
+                else:
+                    print("invalid inputs")
+                    continue
+            elif opt == 3:
+                score = input("input score:")
+                if scoreCheck(score):
+                    res = [x for x in data if x["id"] == id]
+                    score = int(score) if isInt(score) else float(score)
+                    res[0]["score"] = score
+                    res = [x for x in data if x["id"] == id]
+                    print("✅ 学生信息修改成功！")
+                    tablePrint(res)
+                else:
+                    print("invalid inputs")
+                    continue
+
+    else:
+        print("no info match")
+
+
+def deleteInfo():
+    print("""----- 删除功能子菜单 -----
+1. 学号单条删除
+2. 清空全部学生数据""")
+    opt = input("请选择删除模式：").strip()
+    if opt == "1":
+        id = input("input id:")
+        if idCheck(id):
+            id = int(id)
+            if isInDataById(id):
+                res = {k: v for k, v in enumerate(data) if id == v["id"]}
+                for i in res.keys():
+                    data.pop(i)
+                    break
+                print("delete success")
+            else:
+                print("no match info.fail")
+        else:
+            return
+    if opt == "2":
+        if twiceCheck() == 0:
+            clearAll(data)
 
 
 def exitSystem():
-    str = input("quit? y/n")
+    str = input("quit? y/n").strip()
     if str == "y":
         exit()
 
@@ -172,15 +300,17 @@ def main():
             if tablePrint(data) == -1:
                 print("暂无学生信息，请先添加数据")
         if opt == 3:
-            pass
+            selectInfo()
         if opt == 4:
-            pass
+            updateInfo()
         if opt == 5:
-            pass
+            deleteInfo()
         if opt == 6:
             pass
         if opt == 7:
-            pass
+            if twiceCheck() == 0:
+                clearAll(data)
+                print("clear success")
         if opt == 8:
             exitSystem()
 
