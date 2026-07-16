@@ -16,8 +16,14 @@ def menuPrint():
 
 
 def menuOptionInput():
-    i = int(input("input menu option:"))
-    return i
+
+    i = input("input menu option:")
+    if optOfMenuCheck(i, 1, 8):
+        i = i.strip()
+        i = int(i)
+        return i
+    else:
+        return -1
 
 
 def clearAll(table):
@@ -41,47 +47,57 @@ def itemPrint(obj):
 
 
 def tablePrint(dictionsInList):
-    if data == []:
+    if dictionsInList == []:
         return -1
-    print("========== 学生信息列表 ==========")
-    print(f"当前在校学生总人数：{len(data)}人")
     for x in dictionsInList:
         itemPrint(x)
 
 
+def isBlank(s):
+    return not s.strip()
+
+
 def isInt(obj):
-    if not obj:
+    if isBlank(obj):
         return False
-    return obj.isdigit()
+    try:
+        int(obj.strip())
+    except ValueError:
+        return False
+    except Exception as e:
+        return False
+    else:
+        return True
 
 
 def isFloat(obj):
-    if not obj:
+    if isBlank(obj):
         return False
-    for i, x in enumerate(obj.split(".")):
-        if i > 1:
-            return False
-        if isInt(x):
-            pass
-        else:
-            return False
-    return True
+    try:
+        float(obj.strip())
+    except ValueError:
+        return False
+    except Exception:
+        return False
+    else:
+        return True
 
 
 def strCheck(obj):
-    obj.strip()
-    if not obj:
+    if isBlank(obj):
         return False
     return True
 
 
 def idCheck(obj):
     if isInt(obj):
-        if int(obj) > 0:
+        if int(obj.strip()) > 0:
             return True
         else:
+            print("id 必须大于0")
             return False
     else:
+        print("请输入整数")
         return False
 
 
@@ -97,8 +113,10 @@ def ageCheck(obj):
         if int(obj) >= 1 and int(obj) <= 30:
             return True
         else:
+            print("年龄应在1到30之间")
             return False
     else:
+        print("请输入整数")
         return False
 
 
@@ -107,8 +125,25 @@ def scoreCheck(obj):
         if float(obj) >= 0 and float(obj) <= 100:
             return True
         else:
+            print("分数的范围应在0到100")
             return False
     else:
+        print("输入整数或浮点数")
+        return False
+
+
+def optOfMenuCheck(s, low, high):
+    if isBlank(s):
+        print("不能是空值")
+        return False
+    if isInt(s):
+        if int(s) < low or int(s) > high:
+            print("输入序号超出范围！")
+            return False
+        else:
+            return True
+    else:
+        print("请输入整数")
         return False
 
 
@@ -156,7 +191,13 @@ def inputItem():
 
 def addData():
     opt = input("choose mode,1=单个添加，2=批量添加:")
-    if opt == "1":
+    if optOfMenuCheck(opt, 1, 2):
+        pass
+    else:
+        print("菜单选择输入无效")
+        return
+    opt = int(opt)
+    if opt == 1:
         inputItem()
     elif opt == "2":
         while True:
@@ -193,12 +234,25 @@ def getInfoByScore(low, high):
 def selectInfo():
     while True:
         print("1.学号精准查询 2.姓名模糊查询 3.分数区间查询 0.结束查询")
-        opt = int(input("请选择查询方式："))
+        opt = input("请选择查询方式：")
+        if optOfMenuCheck(opt, 0, 3):
+            pass
+        else:
+            print("菜单选择输入无效")
+            continue
+        opt = int(opt)
         if opt == 1:
-            id = int(input("请输入查询学号："))
+            id = input("请输入查询学号：")
+            if not idCheck(id):
+                print("id不合法")
+                continue
+            id = int(id)
             getInfoById(id)
         if opt == 2:
             s = input("请输入姓名关键字：")
+            if not nameCheck(s):
+                print("input 不合法")
+                continue
             getInfoByName(s)
         if opt == 3:
             low = float(input("请输入最低分数："))
@@ -209,7 +263,11 @@ def selectInfo():
 
 
 def updateInfo():
-    id = int(input("输入学号:"))
+    id = input("输入学号:")
+    if not idCheck(id):
+        print("id不合法")
+        return
+    id = int(id)
     if isInDataById(id):
         while True:
             print("""----- 修改功能子菜单 -----
@@ -264,8 +322,12 @@ def deleteInfo():
     print("""----- 删除功能子菜单 -----
 1. 学号单条删除
 2. 清空全部学生数据""")
-    opt = input("请选择删除模式：").strip()
-    if opt == "1":
+    opt = input("请选择删除模式：")
+    if not optOfMenuCheck(opt, 1, 2):
+        print("输入菜单选项无效")
+        return
+    opt = int(opt)
+    if opt == 1:
         id = input("input id:")
         if idCheck(id):
             id = int(id)
@@ -279,7 +341,7 @@ def deleteInfo():
                 print("no match info.fail")
         else:
             return
-    if opt == "2":
+    if opt == 2:
         if twiceCheck() == 0:
             clearAll(data)
 
@@ -309,8 +371,10 @@ def statisticsOfData():
 
 
 def exitSystem():
-    str = input("quit? y/n").strip()
-    if str == "y":
+    str = input("⚠️ 确认退出学生管理系统？(Y/N)").strip()
+    if str == "Y":
+        print("""感谢使用学生信息管理系统，欢迎下次再来！
+程序运行结束""")
         exit()
 
 
@@ -320,23 +384,25 @@ def main():
         opt = menuOptionInput()
         if opt == 1:
             addData()
-        if opt == 2:
+        elif opt == 2:  # 功能2
             if tablePrint(data) == -1:
                 print("暂无学生信息，请先添加数据")
-        if opt == 3:
+        elif opt == 3:
             selectInfo()
-        if opt == 4:
+        elif opt == 4:
             updateInfo()
-        if opt == 5:
+        elif opt == 5:
             deleteInfo()
-        if opt == 6:
+        elif opt == 6:
             statisticsOfData()
-        if opt == 7:
+        elif opt == 7:
             if twiceCheck() == 0:
                 clearAll(data)
                 print("clear success")
-        if opt == 8:
+        elif opt == 8:
             exitSystem()
+        else:
+            pass
 
 
 if __name__ == "__main__":
