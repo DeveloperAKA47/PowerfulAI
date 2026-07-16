@@ -284,6 +284,30 @@ def deleteInfo():
             clearAll(data)
 
 
+def statisticsOfData():
+    if data == []:
+        print("暂无数据")
+        return
+    print(f"学生总人数 {len(data)}", end="\t")
+    print(f"成绩总分 {sum([x['score'] for x in data])}", end="\t")
+    print(f"平均分 {sum([x['score'] for x in data])/len(data):.2f}", end="\t")
+    print(f"最高分 {max([x['score'] for x in data])}", end="\t")
+    print(f"最低分 {min([x['score'] for x in data])}", end="\t")
+    res1 = [x["score"] for x in data if x["score"] >= 60]
+    if res1 == []:
+        passedCount = 0
+    else:
+        passedCount = len(res1)
+    res2 = [x["score"] for x in data if x["score"] < 60]
+    if res2 == []:
+        failCount = 0
+    else:
+        failCount = len(res2)
+    print(f"及格人数 {passedCount}")
+    print(f"不及格人数 {failCount}")
+    print(f"及格率 {passedCount/(passedCount+failCount):.2f}")
+
+
 def exitSystem():
     str = input("quit? y/n").strip()
     if str == "y":
@@ -306,7 +330,7 @@ def main():
         if opt == 5:
             deleteInfo()
         if opt == 6:
-            pass
+            statisticsOfData()
         if opt == 7:
             if twiceCheck() == 0:
                 clearAll(data)
