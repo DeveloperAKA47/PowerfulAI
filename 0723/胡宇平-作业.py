@@ -226,10 +226,30 @@ def retry(
     delay: float = 0.0,
     exceptions: tuple[type[BaseException], ...] = (Exception,),
 ):
+    if (
+        isinstance(max_attempts, int)
+        and not isinstance(max_attempts, bool)
+        and max_attempts > 0
+    ):
+        if delay >= 0 and math.isfinite(delay):
+            pass
+        else:
+            raise ValueError
+    else:
+        raise ValueError
+
     def outer(func):
+        @wraps(func)
         def inner(*args, **kwargs):
-            res = func(*args, **kwargs)
-            return res
+            for i in range(max_attempts):
+                try:
+                    res = func(*args, **kwargs)
+                    return res
+                except exceptions as e:
+                    print(e)
+                    if i == max_attempts - 1:
+                        raise
+                    time.sleep(delay)
 
         return inner
 
