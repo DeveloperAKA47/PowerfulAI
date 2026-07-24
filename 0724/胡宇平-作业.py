@@ -62,21 +62,38 @@ def getStatics():
 
 @app.post("/books/upload")
 async def booksUpload(books: UploadFile = File(...)):
-    if books and books.file and re.match(r"\.csv$"):
+    if books and books.file and re.match(r"\.csv$", books.filename):
         os.makedirs("./tmp", exist_ok=True)
         temppath = os.path.join("./tmp", books.filename)
         with open(temppath, "w", encoding="utf-8") as f:
             shutil.copyfileobj(books.file, f)
         with open(temppath, "r", encoding="utf-8") as f:
             r = csv.DictReader(f, fieldnames=["id", "name", "author", "money"])
+        count = 0
+        for i in r:
+            count += 1
+            i["id"] = len(books_db) + 1
+            books_db.append(i)
+        return {"message": f"成功添加 {count} 本图书", "books": books_db}
+    elif books and books.file and re.match(r"\.json$", books.filename):
+        os.makedirs("./tmp", exist_ok=True)
+        temppath = os.path.join("./tmp", books.filename)
+        with open(temppath, "w", encoding="utf-8") as f:
+            shutil.copyfileobj(books.file, f)
+        with open(temppath, "r", encoding="utf-8") as f:
+            res = json.load(f)
+        if isinstance(res, list):
             count = 0
             for i in r:
                 count += 1
                 i["id"] = len(books_db) + 1
                 books_db.append(i)
-        return {"message": f"成功添加 {count} 本图书", "books": books_db}
-    elif books and books.file and re.match(r"\.json$"):
-        pass
+            return {"message": f"成功添加 {count} 本图书", "books": books_db}
+        elif isinstance(res, dict):
+            res["id"] = len(books_db) + 1
+            books_db.append(res)
+            return {"message": f"成功添加 1 本图书", "books": books_db}
+
     else:
         return JSONResponse(
             content={"detail": "仅支持 .csv 或 .json 文件"}, status_code=400
@@ -107,3 +124,18 @@ async def downloadBooks(format: str = Query("csv")):
         )
     elif format == "json":
         return books_db
+
+
+@app.get("/books/{book_id}")
+def getBook(book_id: int = Path(...)):
+    res = [x for x in books_db if x["id"] == book_id]
+    return (
+        JSONResponse(content={"detail": "图书不存在"}, status_code=404)
+        if not res
+        else JSONResponse(content=res[0])
+    )
+
+
+@app.post("/books")
+def addBook():
+    pass
