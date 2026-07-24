@@ -43,7 +43,7 @@ def root():
 
 
 @app.get("/books")
-def getooks():
+def getBooks():
     return books_db
 
 
@@ -53,7 +53,7 @@ def getStatics():
     res["total_count"] = 0 if not books_db else len(books_db)
     res["total_money"] = sum([x["money"] for x in books_db])
     res["average_price"] = (
-        0 if not books_db else res["total_money" / res["total_count"]]
+        0 if not books_db else res["total_money"] / res["total_count"]
     )
     res["max_price"] = max([x["money"] for x in books_db])
     res["min_price"] = min([x["money"] for x in books_db])
@@ -68,7 +68,7 @@ async def booksUpload(books: UploadFile = File(...)):
         with open(temppath, "w", encoding="utf-8") as f:
             shutil.copyfileobj(books.file, f)
         with open(temppath, "r", encoding="utf-8") as f:
-            r = csv.DictReader(f, fieldnames=["id", "name", "author", "money"])
+            r = csv.DictReader(f)
         count = 0
         for i in r:
             count += 1
@@ -84,7 +84,7 @@ async def booksUpload(books: UploadFile = File(...)):
             res = json.load(f)
         if isinstance(res, list):
             count = 0
-            for i in r:
+            for i in res:
                 count += 1
                 i["id"] = len(books_db) + 1
                 books_db.append(i)
@@ -136,6 +136,71 @@ def getBook(book_id: int = Path(...)):
     )
 
 
+class Book(BaseModel):
+    name: str = Field(...)
+    author: str = Field(...)
+    money: float = Field(..., ge=0)
+
+
 @app.post("/books")
-def addBook():
-    pass
+def addBook(book: Book):
+    res = {
+        "id": len(books_db) + 1,
+        "author": book.author,
+        "name": book.name,
+        "money": book.money,
+    }
+    books_db.append(res)
+    return JSONResponse(
+        content={
+            "message": "添加成功",
+            "book": res,
+        }
+    )
+
+
+@app.put("/books/{book_id}")
+async def updateBook(
+    book_id: int = Path(..., ge=0),
+    author: str | None = Body(...),
+    name: str | None = Body(...),
+    money: float | None = Body(..., ge=0),
+):
+    res = [x for x in books_db if x["id"] == book_id]
+    if res:
+        if author:
+            res[0]["author"] = author
+        if name:
+            res[0]["name"] = name
+        if money is not None:
+            res[0]["money"] = money
+    return (
+        JSONResponse(content={"detail": "图书不存在"}, status_code=404)
+        if not res
+        else JSONResponse(
+            content={
+                "message": "更新成功",
+                "book": res[0],
+            }
+        )
+    )
+
+
+@app.delete("/books/{book_id}")
+async def delBook(book_id: int = Path(..., ge=0)):
+    res = [x for x in books_db if x["id"] == book_id]
+    if res:
+        for i in books_db:
+            if i["id"] == book_id:
+                books_db.remove(i)
+                break
+    return (
+        JSONResponse(content={"detail": "图书不存在"}, status_code=404)
+        if not res
+        else JSONResponse(
+            content={
+                "message": "删除成功",
+                "book": res[0],
+            }
+        )
+    )
