@@ -1,0 +1,30 @@
+已掌握
+FastAPI响应模型
+
+抛出异常
+使用 HTTPException 抛出标准错误
+@app.get("/books/{book_id}")
+def get_book(book_id: int):
+    for book in books:
+        if book["id"] == book_id:
+            return book
+    # 如果没有找到，抛出 404 异常
+    raise HTTPException(status_code=404, detail=f"书籍 ID {book_id} 不存在")
+
+依赖注入
+编写依赖函数，然后在路径函数中使用
+
+def get_current_book(book_id: int):
+
+@app.get("/books/{book_id}")
+def get_book(book: dict = Depends(get_current_book)):
+    return book
+
+CRUD 接口 的增删改查
+
+未掌握
+
+配置数据库连接 只会套模板
+
+后续计划
+复习所学内容，完成图书管理系统
